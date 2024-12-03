@@ -1,0 +1,456 @@
+
+
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติเช็คชื่อห้องเน็ต</title>
+    <link rel="icon" href="https://scontent.fbkk6-2.fna.fbcdn.net/v/t39.30808-6/457509902_17973044849766695_7838770126958484279_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeET7Uofc0PTVk-dD-UifObvsHfrXVRQ6F6wd-tdVFDoXj9V_OL8wQLjqqXduUQ2lli6LTiWXkgmo45N3aPBd6f0&_nc_ohc=zbZLoepdTnwQ7kNvgHUu6d0&_nc_ht=scontent.fbkk6-2.fna&_nc_gid=ALB8HzSCeCXy4_taV1zV4ns&oh=00_AYDORicGww6nPt30txu5cDVmRVba7x1XOfb_Zbd6L-ZONA&oe=671CEE9C" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(to bottom, #a8c0ff, #3f2b96);
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            color: #ffffff;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #ffffff;
+        }
+        button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #e84118;
+            transform: scale(1.05);
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        th {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #333;
+        }
+        tr {
+            transition: background-color 0.3s;
+        }
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        @media (max-width: 600px) {
+            table, button {
+                width: 100%;
+                font-size: 14px;
+            }
+        }
+        /* Snowfall effect */
+        .snow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks through snow */
+        }
+        .snowflake {
+            position: absolute;
+            color: #ffffff;
+            opacity: 0.8;
+            font-size: 1em;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsirKBE3O9HpO9YD9BoiVp8iua5NUFWDE",
+            authDomain: "sample-firebase-ai-app-23a31.firebaseapp.com",
+            databaseURL: "https://sample-firebase-ai-app-23a31-default-rtdb.firebaseio.com",
+            projectId: "sample-firebase-ai-app-23a31",
+            storageBucket: "sample-firebase-ai-app-23a31.appspot.com",
+            messagingSenderId: "214209088155",
+            appId: "1:214209088155:web:a854abf5ab5ae9b7a3543e"    
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        function loadCheckIns() {
+            const checkInsRef = ref(database, 'student-checkins');
+            onValue(checkInsRef, (snapshot) => {
+                const data = snapshot.val();
+                const table = document.getElementById('checkinTable');
+                table.innerHTML = `
+                    <tr>
+                        <th>เลขที่นักเรียน</th>
+                        <th>ชื่อนักเรียน</th>
+                        <th>เวลาเช็คชื่อ</th>
+                    </tr>
+                `; // Reset table and add header
+
+                if (data) {
+                    for (const key in data) {
+                        const row = table.insertRow();
+                        row.insertCell(0).innerText = data[key].StudentNumber || "N/A";
+                        row.insertCell(1).innerText = data[key].StudentName || "N/A";
+                        row.insertCell(2).innerText = data[key].CheckInTime || "N/A";
+                    }
+                } else {
+                    const row = table.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 3;
+                    cell.innerText = "ไม่พบข้อมูล";
+                }
+            });
+        }
+
+        function loadCheckOuts() {
+            const checkOutsRef = ref(database, 'student-checkout');
+            onValue(checkOutsRef, (snapshot) => {
+                const data = snapshot.val();
+                const table = document.getElementById('checkoutTable');
+                table.innerHTML = `
+                    <tr>
+                        <th>เลขที่นักเรียน</th>
+                        <th>ชื่อนักเรียน</th>
+                        <th>เวลาเช็คชื่อออก</th>
+                    </tr>
+                `; // Reset table and add header
+
+                if (data) {
+                    for (const key in data) {
+                        const row = table.insertRow();
+                        row.insertCell(0).innerText = data[key].StudentNumber || "N/A";
+                        row.insertCell(1).innerText = data[key].StudentName || "N/A";
+                        row.insertCell(2).innerText = data[key].CheckInTime || "N/A"; // CheckOutTime แสดงผลที่นี่
+                    }
+                } else {
+                    const row = table.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 3;
+                    cell.innerText = "ไม่พบข้อมูล";
+                }
+            });
+        }
+
+
+        // Snow effect function
+        function createSnowflakes() {
+            const snowContainer = document.createElement('div');
+            snowContainer.classList.add('snow');
+            document.body.appendChild(snowContainer);
+
+            for (let i = 0; i < 200; i++) { // Increased snowflakes
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                snowflake.innerText = '❄'; // Snowflake character
+                snowflake.style.left = Math.random() * 100 + 'vw';
+                snowflake.style.fontSize = Math.random() * 1 + 0.5 + 'em'; // Random size
+                snowflake.style.color = `rgba(255, 255, 255, ${Math.random() * 0.8 + 0.2})`; // Random color variation
+                snowflake.style.animationDuration = Math.random() * 5 + 5 + 's'; // Random fall duration
+                snowflake.style.animationDelay = Math.random() * 5 + 's'; // Random start time
+                snowContainer.appendChild(snowflake);
+            }
+        }
+       // สร้างฟังก์ชันโหลดข้อมูลเช็คอินและเช็คเอาต์ตามเดือน
+function loadChartData() {
+    const checkInsRef = ref(database, 'student-checkins');
+    const checkOutsRef = ref(database, 'student-checkout');
+    let checkInsCount = new Array(12).fill(0);  // จำนวนเช็คอิน 12 เดือน
+    let checkOutsCount = new Array(12).fill(0);  // จำนวนเช็คเอาต์ 12 เดือน
+
+    // นับจำนวนเช็คอินในแต่ละเดือน
+    onValue(checkInsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            for (const key in data) {
+                const checkInTime = new Date(data[key].CheckInTime);
+                const month = checkInTime.getMonth();  // ดึงเดือนจากวันที่เช็คอิน
+                checkInsCount[month] += 1;  // เพิ่มจำนวนเช็คอินในเดือนนั้น
+            }
+        }
+        updateChart(checkInsCount, checkOutsCount);
+    });
+
+    // นับจำนวนเช็คเอาต์ในแต่ละเดือน
+    onValue(checkOutsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            for (const key in data) {
+                const checkOutTime = new Date(data[key].CheckOutTime);
+                const month = checkOutTime.getMonth();  // ดึงเดือนจากวันที่เช็คเอาต์
+                checkOutsCount[month] += 1;  // เพิ่มจำนวนเช็คเอาต์ในเดือนนั้น
+            }
+        }
+        updateChart(checkInsCount, checkOutsCount);
+    });
+}
+
+// ฟังก์ชันสร้างหรืออัปเดตกราฟ
+let myChart;
+function updateChart(checkIns, checkOuts) {
+    const ctx = document.getElementById('checkinChart').getContext('2d');
+    if (myChart) {
+        myChart.data.datasets[0].data = checkIns;
+        myChart.data.datasets[1].data = checkOuts;
+        myChart.update();
+    } else {
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+                ],
+                datasets: [{
+                    label: 'เช็คอิน',
+                    data: checkIns,
+                    backgroundColor: '#4caf50',
+                    borderColor: '#388e3c',
+                    borderWidth: 1
+                }, {
+                    label: 'เช็คเอาต์',
+                    data: checkOuts,
+                    backgroundColor: '#ff5722',
+                    borderColor: '#d32f2f',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1  // กำหนดระยะห่างระหว่าง ticks
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+
+
+
+window.onload = function() {
+    loadCheckIns();
+    loadCheckOuts();
+    loadChartData();
+    createSnowflakes();
+
+};
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+
+ 
+
+
+    <h1>ระบบ เช็ครายชื่อนักเรียนเข้าห้องอินเตอร์เน็ต</h1>
+   
+
+    <h2>ค้นหานักเรียน</h2>
+   <center></center> <div style="text-align: center; margin-bottom: 20px;">
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อนักเรียน" style="
+            width: 60%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;">
+      <button onclick="searchStudent()" style="
+            padding: 10px 15px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s, transform 0.2s;">
+            ค้นหา
+        </button>
+    </div></center>
+    
+    <script>
+        function searchStudent() {
+            const searchInput = document.getElementById("searchInput").value.toLowerCase();
+            const checkInRows = document.querySelectorAll("#checkinTable tr:not(:first-child)");
+            const checkOutRows = document.querySelectorAll("#checkoutTable tr:not(:first-child)");
+    
+            checkInRows.forEach(row => {
+                const name = row.cells[1].innerText.toLowerCase();
+                row.style.display = name.includes(searchInput) ? '' : 'none';
+            });
+    
+            checkOutRows.forEach(row => {
+                const name = row.cells[1].innerText.toLowerCase();
+                row.style.display = name.includes(searchInput) ? '' : 'none';
+            });
+        }
+    </script>
+ 
+
+ <div style="text-align: center; margin-bottom: 20px;">
+    <input type="text" id="searchInput" placeholder="ค้นหาชื่อนักเรียน" style="
+        width: 60%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: none;
+        outline: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;">
+    <input type="date" id="dateInput" style="
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: none;
+        outline: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;">
+    <button onclick="XXX()" style="
+        padding: 10px 15px;
+        background-color: #ff4757;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: background-color 0.3s, transform 0.2s;">
+        ค้นหา
+    </button>
+</div>
+
+<script>
+function XXX() {
+    const searchInput = document.getElementById("searchInput").value.toLowerCase();
+    const dateInput = document.getElementById("dateInput").value;
+    
+    // ตรวจสอบว่าเลือกวันที่หรือไม่
+    if (!dateInput) {
+        alert("กรุณาเลือกวันที่");
+        return;
+    }
+
+    const selectedDate = new Date(dateInput); // แปลงเป็นวันที่
+    const selectedDateString = selectedDate.toDateString(); // แปลงเป็นวันที่ที่ไม่มีเวลา
+
+    const checkInRows = document.querySelectorAll("#checkinTable tr:not(:first-child)");
+    const checkOutRows = document.querySelectorAll("#checkoutTable tr:not(:first-child)");
+
+    // กรองข้อมูลในตารางเช็คอิน
+    checkInRows.forEach(row => {
+        const studentName = row.cells[1].innerText.toLowerCase();
+        const checkInTime = new Date(row.cells[2].innerText); // ดึงเวลาเช็คอินจากเซลล์
+        const checkInDateString = checkInTime.toDateString(); // แปลงเวลาเช็คอินเป็นวันที่
+
+        // ตรวจสอบชื่อและวันที่
+        if (studentName.includes(searchInput) && checkInDateString === selectedDateString) {
+            row.style.display = ''; // แสดงแถวที่ตรงกับชื่อและวันที่
+        } else {
+            row.style.display = 'none'; // ซ่อนแถวที่ไม่ตรงกับชื่อและวันที่
+        }
+    });
+
+    // กรองข้อมูลในตารางเช็คเอาต์
+    checkOutRows.forEach(row => {
+        const studentName = row.cells[1].innerText.toLowerCase();
+        const checkOutTime = new Date(row.cells[2].innerText); // ดึงเวลาเช็คเอาต์จากเซลล์
+        const checkOutDateString = checkOutTime.toDateString(); // แปลงเวลาเช็คเอาต์เป็นวันที่
+
+        // ตรวจสอบชื่อและวันที่
+        if (studentName.includes(searchInput) && checkOutDateString === selectedDateString) {
+            row.style.display = ''; // แสดงแถวที่ตรงกับชื่อและวันที่
+        } else {
+            row.style.display = 'none'; // ซ่อนแถวที่ไม่ตรงกับชื่อและวันที่
+        }
+    });
+}
+
+</script>
+
+    <h2>ประวัติเช็คชื่อ</h2>
+    <table id="checkinTable">
+        <tr>
+            <th>เลขที่นักเรียน</th>
+            <th>ชื่อนักเรียน</th>
+            <th>เวลาเช็คชื่อ</th>
+        </tr>
+    </table>
+
+    <h2>ประวัติเช็คชื่อออก</h2>
+    <table id="checkoutTable">
+        <tr>
+            <th>เลขที่นักเรียน</th>
+            <th>ชื่อนักเรียน</th>
+            <th>เวลาเช็คชื่อออก</th>
+        </tr>
+    </table>
+
+
+    <h2>กราฟแสดงจำนวนเช็คเข้าห้องอินเตอร์เน็ต ต่อเดือน</h2>
+    <canvas id="checkinChart" style="width: 100%; height: 300px;"></canvas>
+
+</body>
+</html>
